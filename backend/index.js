@@ -12,7 +12,8 @@ const app = express();
 const PORT = process.env.PORT || 4100;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: 'https://blog-app-1-0sja.onrender.com/' }));
+
 app.use(express.json());
 
 // Routes
