@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from "../api"
+
 
 const PostDetail = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const PostDetail = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:4100/api/${id}`);
+        const response = await API.get(`/api/${id}`);
         setPost(response.data);
       } catch (err) {
         setError('Error fetching post. Please try again later.',err);
@@ -30,7 +31,7 @@ const PostDetail = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:4100/api/delete/${post._id}`);
+      await API.delete(`/api/delete/${post._id}`);
       alert("Post deleted successfully");
       navigate('/posts');
     } catch (err) {

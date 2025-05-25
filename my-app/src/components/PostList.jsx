@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import API from "../api"
 import { Link } from 'react-router-dom';
 
 const PostsList = () => {
@@ -9,7 +9,7 @@ const PostsList = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('http://localhost:4100/api/get');
+      const response = await API.get('/api/get');
       setPosts(response.data);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -33,7 +33,7 @@ const PostsList = () => {
     if (!confirm) return;
 
     try {
-      await axios.delete(`http://localhost:4100/api/delete/${id}`);
+      await API.delete(`/api/delete/${id}`);
       fetchPosts(); // Refresh after delete
     } catch (error) {
       console.error("Failed to delete:", error);
