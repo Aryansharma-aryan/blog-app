@@ -11,7 +11,7 @@ const Home = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('http://localhost:4100/api/get');
+      const response = await axios.get('https://blog-e1e3.onrender.com/api/get');
       setPosts(response.data.slice(0, 6)); // Show first 6 posts
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -36,7 +36,7 @@ const Home = () => {
 
     setDeletingId(id);
     try {
-      await axios.delete(`http://localhost:4100/api/delete/${id}`);
+      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`);
       fetchPosts();
     } catch (error) {
       console.error("Failed to delete:", error);
