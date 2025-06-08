@@ -22,7 +22,7 @@ const CreatePost = () => {
     setError('');
 
     try {
-      await axios.post('http://localhost:4100/api/create', formData);
+      await axios.post('https://blog-e1e3.onrender.com/api/create', formData);
       navigate('/');
     } catch (err) {
       setError('Failed to create the post. Please try again.');
