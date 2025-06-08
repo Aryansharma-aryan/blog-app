@@ -19,7 +19,7 @@ const EditPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:4100/api/${id}`);
+        const response = await axios.get(`https://blog-e1e3.onrender.com/api/${id}`);
         setFormData({
           title: response.data.title,
           content: response.data.content || response.data.post,
@@ -44,7 +44,7 @@ const EditPost = () => {
     setError('');
 
     try {
-      await axios.put(`http://localhost:4100/api/update/${id}`, formData);
+      await axios.put(`https://blog-e1e3.onrender.com/api/update/${id}`, formData);
       navigate(`/post/${id}`);
     } catch (err) {
       setError('Failed to update post. Please try again.');
