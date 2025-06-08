@@ -15,11 +15,11 @@ const PORT = process.env.PORT || 4100;
 app.use(express.json());
 
 // Enable CORS with allowed origin from .env
-<<<<<<< HEAD
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
-  'http://localhost:5175'
+  'http://localhost:5174'
+
 ];
 
 app.use(cors({
@@ -30,17 +30,12 @@ app.use(cors({
       callback(new Error('CORS not allowed for this origin: ' + origin));
     }
   },
+  origin: '*',  // allow all origin
+  
   credentials: true
 }));
 
 
-=======
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
-
->>>>>>> f9667146cbcf1ad381bb0ef3505d10a6c0412d64
 // Routes
 app.use('/api', postRoutes);
 

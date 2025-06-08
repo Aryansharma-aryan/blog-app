@@ -7,11 +7,12 @@ const Home = () => {
   const [posts, setPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchPosts = async () => {
     try {
       const response = await axios.get('http://localhost:4100/api/get');
-      setPosts(response.data.slice(0, 6)); // Show the first 6 posts on homepage
+      setPosts(response.data.slice(0, 6)); // Show first 6 posts
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -25,23 +26,35 @@ const Home = () => {
 
   const filteredPosts = posts.filter(post =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     post.author.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (!confirmDelete) return;
+
+    setDeletingId(id);
+    try {
+      await axios.delete(`http://localhost:4100/api/delete/${id}`);
+      fetchPosts();
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      alert("Failed to delete post.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
-      
 
       {/* Hero Section */}
-      <div className="w-full py-48 px-5 text-center bg-gradient-to-r from-gray-800 via-black to-gray-900 shadow-2xl flex flex-col mb-4 justify-center mb-8 items-center">
-     <h1 className="text-white md:text-7xl font-extrabold text-transparent bg-clip-text ..."
->
-  Welcome to My Blog
-</h1>
-
-
+      <div className="w-full py-48 px-5 text-center bg-gradient-to-r from-gray-800 via-black to-gray-900 shadow-2xl flex flex-col mb-8 justify-center items-center">
+        <h1 className="text-white md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-600">
+          Welcome to My Blog
+        </h1>
         <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto mt-8">
           Share your thoughts, ideas, and stories with the world. Dive into topics that matter and make an impact.
         </p>
@@ -52,12 +65,13 @@ const Home = () => {
           Create a New Post
         </Link>
       </div>
-      <div className="overflow-hidden whitespace-nowrap w-full mt-4">
-  <p className="inline-block animate-marquee text-lg text-yellow-400 font-semibold">
-    🔥 Stay updated with the latest tech trends, tutorials, and insights – Only on My Blog! 🚀
-  </p>
-</div>
 
+      {/* Scrolling Marquee */}
+      <div className="overflow-hidden whitespace-nowrap w-full mt-4">
+        <p className="inline-block animate-marquee text-lg text-yellow-400 font-semibold">
+          🔥 Stay updated with the latest tech trends, tutorials, and insights – Only on My Blog! 🚀
+        </p>
+      </div>
 
       {/* Search Bar */}
       <div className="max-w-3xl mx-auto mb-8 mt-8">
@@ -70,10 +84,12 @@ const Home = () => {
         />
       </div>
 
-      {/* Posts */}
+      {/* Posts Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full max-w-screen-xl mx-auto py-12">
         {loading ? (
-          <div className="w-full h-screen flex items-center justify-center text-gray-500 text-lg">Loading...</div>
+          <div className="w-full h-screen flex items-center justify-center text-gray-500 text-lg">
+            Loading...
+          </div>
         ) : filteredPosts.length === 0 ? (
           <p className="text-center text-gray-400">No posts found. Create one now!</p>
         ) : (
@@ -85,7 +101,13 @@ const Home = () => {
               <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-pink-400 mb-2">
                 {post.title}
               </h3>
-              <p className="text-gray-400 mb-2">{post.content?.substring(0, 100)}...</p>
+              {post.content ? (
+                <p className="text-gray-400 mb-2">
+                  {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
+                </p>
+              ) : (
+                <p className="text-gray-400 mb-2 italic">No content available.</p>
+              )}
               <p className="text-sm text-gray-500 mb-4"><strong>Author:</strong> {post.author}</p>
 
               <div className="flex flex-wrap gap-3">
@@ -103,9 +125,11 @@ const Home = () => {
                 </Link>
                 <button
                   onClick={() => handleDelete(post._id)}
-                  className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-all duration-300"
+                  disabled={deletingId === post._id}
+                  className={`text-sm px-3 py-1 bg-red-600 text-white rounded transition-all duration-300
+                    ${deletingId === post._id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
                 >
-                  Delete
+                  {deletingId === post._id ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import API from '../api'; // your axios instance
-
+import axios from 'axios'; // direct axios import
 import { useNavigate } from 'react-router-dom';
 
 const CreatePost = () => {
@@ -23,12 +22,10 @@ const CreatePost = () => {
     setError('');
 
     try {
-      
-            await API.post('/api/create', formData);
-
+      await axios.post('http://localhost:4100/api/create', formData);
       navigate('/');
     } catch (err) {
-      setError('Failed to create the post. Please try again.',err);
+      setError('Failed to create the post. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -26,7 +26,7 @@ const EditPost = () => {
           author: response.data.author,
         });
       } catch (err) {
-        setError('Error loading post. Please try again.',err);
+        setError('Error loading post. Please try again.');
       }
     };
     fetchPost();
@@ -47,7 +47,7 @@ const EditPost = () => {
       await axios.put(`http://localhost:4100/api/update/${id}`, formData);
       navigate(`/post/${id}`);
     } catch (err) {
-      setError('Failed to update post. Please try again.',err);
+      setError('Failed to update post. Please try again.');
     } finally {
       setLoading(false);
     }
