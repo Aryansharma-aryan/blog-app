@@ -14,7 +14,7 @@ const PostDetail = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:4100/api/${id}`);
+        const response = await axios.get(`https://blog-e1e3.onrender.com/api/${id}`);
         setPost(response.data);
       } catch (err) {
         setError('Error fetching post. Please try again later.');
@@ -33,7 +33,7 @@ const PostDetail = () => {
 
     setDeleting(true);
     try {
-      await axios.delete(`http://localhost:4100/api/delete/${post._id}`);
+      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${post._id}`);
       alert("Post deleted successfully");
       navigate('/posts');
     } catch (err) {
