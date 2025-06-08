@@ -40,29 +40,32 @@ const getPosts = async (req, res) =>{
     }
 }
 const updatePost = async (req, res) => {
-    try {
-       const { id } = req.params; // The ID of the post to update
-       const { title, post, author } = req.body; // Data to update
- 
-       // Check if all fields are provided
-       if (!title || !post || !author) {
-          return res.status(400).json({ message: 'All fields are required' });
-       }
- 
-       // Find the post by ID and update it
-       const updatedPost = await Post.findByIdAndUpdate(id, { title, post, author }, { new: true });
- 
-       if (!updatedPost) {
-          return res.status(404).json({ message: 'Post not found' });
-       }
- 
-       res.status(200).json(updatedPost); // Send the updated post back as a response
-    } catch (error) {
-       res.status(500).json({ message: 'Error updating post' });
+  try {
+    const { title, content, author } = req.body;
+
+    if (!title || !content || !author) {
+      return res.status(400).json({ message: 'All fields are required' });
     }
- };
- 
- 
+
+    const { id } = req.params;
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      id,
+      { title, content, author },
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    console.error('Error updating post:', error);
+    res.status(500).json({ message: 'Error updating post' });
+  }
+};
+
  const deletePost = async (req, res) => {
    try {
      const deletedPost = await Post.findByIdAndDelete(req.params.id);

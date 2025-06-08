@@ -19,8 +19,8 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://localhost:5174',
- ' https://blog-verse-lovat.vercel.app/'
-
+  'https://blog-verse-lovat.vercel.app',
+  
 ];
 
 app.use(cors({
@@ -31,10 +31,10 @@ app.use(cors({
       callback(new Error('CORS not allowed for this origin: ' + origin));
     }
   },
-  origin: '*',  // allow all origin
-  
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 👈 Make sure all methods are accepted
 }));
+
 
 
 // Routes
@@ -45,6 +45,7 @@ app.get('/', (req, res) => {
   res.send('Blogging Platform API is running...');
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`Server started on http://localhost:${PORT}`);
 });

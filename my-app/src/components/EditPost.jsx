@@ -15,14 +15,14 @@ const EditPost = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch the current post details for editing
+  // Fetch current post details
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const response = await axios.get(`https://blog-e1e3.onrender.com/api/${id}`);
         setFormData({
           title: response.data.title,
-          content: response.data.content || response.data.post,
+          content: response.data.content, // ✅ no fallback to post
           author: response.data.author,
         });
       } catch (err) {
@@ -32,12 +32,10 @@ const EditPost = () => {
     fetchPost();
   }, [id]);
 
-  // Handle form input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle form submission (update the post)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -61,7 +59,6 @@ const EditPost = () => {
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title Field */}
           <div className="space-y-2">
             <label className="text-lg font-medium text-gray-200">Title</label>
             <input
@@ -74,7 +71,6 @@ const EditPost = () => {
             />
           </div>
 
-          {/* Content Field */}
           <div className="space-y-2">
             <label className="text-lg font-medium text-gray-200">Content</label>
             <textarea
@@ -87,7 +83,6 @@ const EditPost = () => {
             />
           </div>
 
-          {/* Author Field */}
           <div className="space-y-2">
             <label className="text-lg font-medium text-gray-200">Author</label>
             <input
@@ -100,7 +95,6 @@ const EditPost = () => {
             />
           </div>
 
-          {/* Submit Button */}
           <div className="mt-4">
             <button
               type="submit"
