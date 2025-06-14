@@ -3,75 +3,104 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const PostDetail = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
+  // Load logged-in user from localStorage
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    setCurrentUser(storedUser);
+  }, []);
+
+  // Fetch post data by ID
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`https://blog-e1e3.onrender.com/api/${id}`);
-        setPost(response.data);
+        const res = await axios.get(`https://blog-e1e3.onrender.com/api/${id}`);
+        setPost(res.data);
       } catch (err) {
-        setError('Error fetching post. Please try again later.');
+        setError('⚠️ Error fetching post. Please try again later.');
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchPost();
   }, [id]);
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    const confirmDelete = window.confirm('Are you sure you want to delete this post?');
     if (!confirmDelete) return;
 
     setDeleting(true);
     try {
-      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${post._id}`);
-      alert("Post deleted successfully");
+      const token = localStorage.getItem('token');
+      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${post._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      alert('✅ Post deleted successfully.');
       navigate('/posts');
     } catch (err) {
-      alert("Failed to delete post.");
+      alert('❌ Failed to delete post.');
       console.error(err);
     } finally {
       setDeleting(false);
     }
   };
 
-  if (loading) return <div className="text-center py-10 text-lg text-gray-600">Loading...</div>;
-  if (error) return <div className="text-center py-10 text-red-600">{error}</div>;
-  if (!post) return <div className="text-center py-10 text-gray-500">No post found.</div>;
+  const isAuthor = currentUser && post?.userId === currentUser._id;
+
+  if (loading) return <div className="text-center py-20 text-lg text-gray-400">Loading...</div>;
+  if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
+  if (!post) return <div className="text-center py-20 text-gray-400">Post not found.</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-700 via-indigo-800 to-blue-900 py-16 px-8">
-      <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-xl p-8 mt-10 transform transition-all duration-300 hover:scale-105 hover:shadow-[0px_12px_30px_rgba(0,255,255,0.5)]">
-        <h2 className="text-4xl font-bold text-gray-800 mb-4">{post.title}</h2>
-        <p className="text-gray-600 mb-6 text-sm">
-          By <span className="font-medium">{post.author}</span>
-        </p>
-        <p className="text-lg text-gray-700 whitespace-pre-line">{post.content || post.post}</p>
+    <div className="min-h-screen bg-black text-white px-4 py-12">
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-[#111111] border border-gray-700 rounded-xl p-8 md:p-12 shadow-xl hover:shadow-[0px_10px_30px_rgba(255,255,255,0.1)] transition-all duration-300">
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 to-pink-500">
+            {post.title}
+          </h1>
 
-        <div className="mt-8 flex gap-4">
-          <Link
-            to={`/edit/${post._id}`}
-            className={`px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition ${deleting ? 'opacity-50 cursor-not-allowed' : ''}`}
-            tabIndex={deleting ? -1 : 0}
-          >
-            Edit
-          </Link>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className={`px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition ${deleting ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {deleting ? 'Deleting...' : 'Delete'}
-          </button>
+          <p className="text-sm text-gray-400 mb-4">
+            Posted by <span className="font-medium text-white">{post.author}</span>
+          </p>
+
+          <hr className="border-gray-700 mb-6" />
+
+          <div className="text-lg leading-relaxed text-gray-300 whitespace-pre-line">
+            {post.content}
+          </div>
+
+          {isAuthor && (
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link
+                to={`/edit/${post._id}`}
+                className={`px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-semibold transition-all ${
+                  deleting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                Edit
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className={`px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-semibold transition-all ${
+                  deleting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

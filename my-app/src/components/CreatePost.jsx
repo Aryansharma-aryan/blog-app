@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
-import axios from 'axios'; // direct axios import
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const CreatePost = () => {
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    author: '',
-  });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ title: '', content: '' });
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+
+  // Load user from localStorage
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (!storedUser) {
+      alert('You must be logged in to create a post');
+      navigate('/login');
+    } else {
+      setUser(storedUser);
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,10 +29,36 @@ const CreatePost = () => {
     setLoading(true);
     setError('');
 
+    const trimmedTitle = formData.title.trim();
+    const trimmedContent = formData.content.trim();
+
+    if (!trimmedTitle || !trimmedContent) {
+      setError('Title and content cannot be empty.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await axios.post('https://blog-e1e3.onrender.com/api/create', formData);
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'https://blog-e1e3.onrender.com/api/create',
+        {
+          title: trimmedTitle,
+          content: trimmedContent,
+          author: user.name,
+          userId: user._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert('Post created successfully!');
       navigate('/');
     } catch (err) {
+      console.error(err);
       setError('Failed to create the post. Please try again.');
     } finally {
       setLoading(false);
@@ -32,7 +66,7 @@ const CreatePost = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4 animate-fadeIn">
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-black via-gray-900 to-gray-800 p-4">
       <div className="w-full max-w-3xl bg-white/5 backdrop-blur-md rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.6)] p-10 text-white">
         <h2 className="text-4xl font-extrabold text-center text-white mb-8">📝 Create a New Post</h2>
 
@@ -48,7 +82,7 @@ const CreatePost = () => {
               value={formData.title}
               onChange={handleChange}
               required
-              className="w-full px-5 py-3 bg-gray-800 text-white rounded-xl border border-gray-600 focus:ring-2 focus:ring-blue-500 transition-all duration-300 focus:outline-none focus:shadow-[0_0_10px_2px_rgba(59,130,246,0.4)]"
+              className="w-full px-5 py-3 bg-gray-800 text-white rounded-xl border border-gray-600 focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -60,25 +94,12 @@ const CreatePost = () => {
               value={formData.content}
               onChange={handleChange}
               required
-              rows="5"
-              className="w-full px-5 py-3 bg-gray-800 text-white rounded-xl border border-gray-600 focus:ring-2 focus:ring-purple-500 transition-all duration-300 focus:outline-none focus:shadow-[0_0_10px_2px_rgba(168,85,247,0.4)] resize-none"
+              rows="6"
+              className="w-full px-5 py-3 bg-gray-800 text-white rounded-xl border border-gray-600 focus:ring-2 focus:ring-purple-500 resize-none"
             />
           </div>
 
-          {/* Author */}
-          <div>
-            <label className="block text-lg font-semibold text-gray-300 mb-2">Author</label>
-            <input
-              type="text"
-              name="author"
-              value={formData.author}
-              onChange={handleChange}
-              required
-              className="w-full px-5 py-3 bg-gray-800 text-white rounded-xl border border-gray-600 focus:ring-2 focus:ring-green-500 transition-all duration-300 focus:outline-none focus:shadow-[0_0_10px_2px_rgba(34,197,94,0.4)]"
-            />
-          </div>
-
-          {/* Button */}
+          {/* Submit Button */}
           <div className="mt-6">
             <button
               type="submit"

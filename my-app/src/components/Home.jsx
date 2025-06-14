@@ -8,6 +8,13 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    // Load current user from localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    setCurrentUser(user);
+  }, []);
 
   const fetchPosts = async () => {
     try {
@@ -36,7 +43,12 @@ const Home = () => {
 
     setDeletingId(id);
     try {
-      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       fetchPosts();
     } catch (error) {
       console.error("Failed to delete:", error);
@@ -52,7 +64,7 @@ const Home = () => {
 
       {/* Hero Section */}
       <div className="w-full py-48 px-5 text-center bg-gradient-to-r from-gray-800 via-black to-gray-900 shadow-2xl flex flex-col mb-8 justify-center items-center">
-        <h1 className="text-white md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-600">
+        <h1 className="text-white text-4xl sm:text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-pink-500 to-purple-600 animate-pulse">
           Welcome to My Blog
         </h1>
         <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto mt-8">
@@ -93,47 +105,57 @@ const Home = () => {
         ) : filteredPosts.length === 0 ? (
           <p className="text-center text-gray-400">No posts found. Create one now!</p>
         ) : (
-          filteredPosts.map((post) => (
-            <div
-              key={post._id}
-              className="bg-black text-white shadow-lg rounded-lg p-6 border border-gray-700 transform transition-all duration-300 hover:scale-105 hover:shadow-[0px_8px_25px_rgba(255,165,0,0.6)] hover:bg-gray-800 hover:text-yellow-400"
-            >
-              <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-pink-400 mb-2">
-                {post.title}
-              </h3>
-              {post.content ? (
-                <p className="text-gray-400 mb-2">
-                  {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
-                </p>
-              ) : (
-                <p className="text-gray-400 mb-2 italic">No content available.</p>
-              )}
-              <p className="text-sm text-gray-500 mb-4"><strong>Author:</strong> {post.author}</p>
+          filteredPosts.map((post) => {
+            const isAuthor = currentUser && post.userId === currentUser._id;
 
-              <div className="flex flex-wrap gap-3">
-                <Link
-                  to={`/post/${post._id}`}
-                  className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-all duration-300"
-                >
-                  View
-                </Link>
-                <Link
-                  to={`/edit/${post._id}`}
-                  className="text-sm px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-all duration-300"
-                >
-                  Edit
-                </Link>
-                <button
-                  onClick={() => handleDelete(post._id)}
-                  disabled={deletingId === post._id}
-                  className={`text-sm px-3 py-1 bg-red-600 text-white rounded transition-all duration-300
-                    ${deletingId === post._id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
-                >
-                  {deletingId === post._id ? 'Deleting...' : 'Delete'}
-                </button>
+            return (
+              <div
+                key={post._id}
+                className="bg-black text-white shadow-lg rounded-lg p-6 border border-gray-700 transform transition-all duration-300 hover:scale-105 hover:shadow-[0px_8px_25px_rgba(255,165,0,0.6)] hover:bg-gray-800 hover:text-yellow-400"
+              >
+                <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-pink-400 mb-2">
+                  {post.title}
+                </h3>
+                {post.content ? (
+                  <p className="text-gray-400 mb-2">
+                    {post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content}
+                  </p>
+                ) : (
+                  <p className="text-gray-400 mb-2 italic">No content available.</p>
+                )}
+                <p className="text-sm text-gray-500 mb-4"><strong>Author:</strong> {post.author}</p>
+
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    to={`/post/${post._id}`}
+                    className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-all duration-300"
+                  >
+                    View
+                  </Link>
+
+                  {isAuthor && (
+                    <>
+                      <Link
+                        to={`/edit/${post._id}`}
+                        className="text-sm px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-all duration-300"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(post._id)}
+                        disabled={deletingId === post._id}
+                        className={`text-sm px-3 py-1 bg-red-600 text-white rounded transition-all duration-300 ${
+                          deletingId === post._id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
+                        }`}
+                      >
+                        {deletingId === post._id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
