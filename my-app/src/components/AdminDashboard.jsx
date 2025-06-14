@@ -9,12 +9,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersRes = await axios.get('https://blog-app-1-0sja.onrender.com/api/users', {
+        const usersRes = await axios.get('https://blog-app-ffk3.onrender.com/api/users', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(usersRes.data);
 
-        const postsRes = await axios.get('https://blog-app-1-0sja.onrender.com/api/admin/posts', {
+        const postsRes = await axios.get('https://blog-app-ffk3.onrender.com/api/admin/posts', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPosts(postsRes.data);
@@ -27,7 +27,7 @@ const AdminDashboard = () => {
 
   const deleteUser = async (id) => {
     if (!window.confirm('Delete user?')) return;
-    await axios.delete(`https://blog-app-1-0sja.onrender.com/api/admin/users/${id}`, {
+    await axios.delete(`https://blog-app-ffk3.onrender.com/api/admin/users/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setUsers(users.filter(u => u._id !== id));
@@ -35,7 +35,7 @@ const AdminDashboard = () => {
 
   const deletePost = async (id) => {
     if (!window.confirm('Delete post?')) return;
-    await axios.delete(`https://blog-app-1-0sja.onrender.com/api/admin/posts/${id}`, {
+    await axios.delete(`https://blog-app-ffk3.onrender.com/api/admin/posts/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setPosts(posts.filter(p => p._id !== id));
