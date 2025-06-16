@@ -168,9 +168,13 @@ const PostsList = () => {
                       <i>No content provided.</i>
                     )}
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">
-                    <strong>Author:</strong> {post.author?.name || "Unknown"}
-                  </p>
+ <p className="text-sm text-gray-500 mb-4">
+  <strong>Author:</strong>{" "}
+  {post.author?.name && post.author?.email
+    ? `${post.author.name} (${post.author.email})`
+    : post.author?.email || "Unknown"}
+</p>
+
 
                   <div className="flex gap-3 flex-wrap">
                     <Link
