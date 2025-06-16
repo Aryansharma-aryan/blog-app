@@ -33,7 +33,7 @@ const EditPost = () => {
     const fetchPost = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:4200/api/posts/${id}`, {
+        const res = await axios.get(`https://blog-e1e3.onrender.com/api/posts/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -94,7 +94,7 @@ const EditPost = () => {
         data.append('image', formData.imageFile); // send new image only if selected
       }
 
-      await axios.put(`http://localhost:4200/api/update/${id}`, data, {
+      await axios.put(`https://blog-e1e3.onrender.com/api/update/${id}`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
