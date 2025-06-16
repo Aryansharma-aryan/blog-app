@@ -22,7 +22,7 @@ const PostDetail = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await axios.get(`https://blog-e1e3.onrender.com/api/${id}`);
+        const res = await axios.get(`http://localhost:4200/api/posts/${id}`);
         setPost(res.data);
       } catch (err) {
         setError('⚠️ Error fetching post. Please try again later.');
@@ -35,26 +35,32 @@ const PostDetail = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this post?');
-    if (!confirmDelete) return;
+  const confirmDelete = window.confirm('Are you sure you want to delete this post?');
+  if (!confirmDelete) return;
 
-    setDeleting(true);
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${post._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      alert('✅ Post deleted successfully.');
-      navigate('/posts');
-    } catch (err) {
-      alert('❌ Failed to delete post.');
-      console.error(err);
-    } finally {
-      setDeleting(false);
+  setDeleting(true);
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('🔐 No token found. Please log in again.');
+      return;
     }
-  };
+
+    await axios.delete(`http://localhost:4200/api/delete/${post._id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    alert('✅ Post deleted successfully.');
+    navigate('/posts'); // Adjust if your post list route differs
+  } catch (err) {
+    console.error('❌ Delete post error:', err);
+    alert('❌ Failed to delete post.');
+  } finally {
+    setDeleting(false);
+  }
+};
 
   const isAuthor = currentUser && post?.userId === currentUser._id;
 
@@ -73,6 +79,14 @@ const PostDetail = () => {
           <p className="text-sm text-gray-400 mb-4">
             Posted by <span className="font-medium text-white">{post.author}</span>
           </p>
+           {/* Only show image if present */}
+  {post.image && (
+    <img
+      src={`http://localhost:4200${post.image}`}
+      alt="Post"
+      className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
+    />
+  )}
 
           <hr className="border-gray-700 mb-6" />
 

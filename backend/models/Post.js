@@ -9,15 +9,13 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // for population if needed
-    required: true
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
+    image: String,  // <--- add this line
+
+   author: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "User", // ✅ Reference the User model
+},
+
   deleted: {
     type: Boolean,
     default: false

@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // ✅ Use environment variable for JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
+const JWT_SECRET = "aryan2951";
 
 // ========== Signup Controller ==========
 const signup = async (req, res) => {
@@ -47,27 +47,26 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Input validation
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    // Find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(
+      { id: user._id, role: user.role }, // ✅ include role
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-    // Respond with token and user info
     return res.status(200).json({
       message: "Login successful",
       token,
@@ -83,6 +82,7 @@ const login = async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 module.exports = {
   signup,

@@ -17,32 +17,42 @@ const PostsList = () => {
 
   const observer = useRef();
 
-  // Load user from localStorage
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('user'));
     setCurrentUser(userData);
   }, []);
 
   const fetchPosts = async (pageNum = 1) => {
-    try {
-      if (pageNum === 1) setLoading(true);
-      else setLoadingMore(true);
+  try {
+    if (pageNum === 1) setLoading(true);
+    else setLoadingMore(true);
 
-      const res = await axios.get(`https://blog-e1e3.onrender.com/api/get`);
-      const allPosts = res.data;
-
-      const paginated = allPosts.slice(0, pageNum * POSTS_PER_PAGE);
-      setPosts(paginated);
-      setHasMore(paginated.length < allPosts.length);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching posts:', err);
-      setError('⚠️ Failed to load posts. Try again later.');
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError("🔐 No token found. Please log in.");
+      return;
     }
-  };
+
+    const res = await axios.get(`http://localhost:4200/api/getPosts`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const allPosts = res.data;
+    const paginated = allPosts.slice(0, pageNum * POSTS_PER_PAGE);
+    setPosts(paginated);
+    setHasMore(paginated.length < allPosts.length);
+    setError(null);
+  } catch (err) {
+    console.error('Error fetching posts:', err);
+    setError('⚠️ Failed to load posts. Try again later.');
+  } finally {
+    setLoading(false);
+    setLoadingMore(false);
+  }
+};
+
 
   useEffect(() => {
     fetchPosts(page);
@@ -62,34 +72,42 @@ const PostsList = () => {
     [loadingMore, hasMore, loading]
   );
 
-  // ✅ Show only current user's posts (with search)
   const myPosts = posts.filter(
     (post) =>
       currentUser &&
-      post.userId === currentUser._id &&
+      post.author?._id === currentUser._id &&
       (
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.author.toLowerCase().includes(searchQuery.toLowerCase())
+        post.author?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       )
   );
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+    if (!confirmDelete) return;
 
-    setDeletingId(id);
     try {
+      setDeletingId(id);
+
       const token = localStorage.getItem('token');
-      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`, {
+      if (!token) {
+        alert("🔐 No token found. Please log in again.");
+        return;
+      }
+
+      await axios.delete(`http://localhost:4200/api/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      fetchPosts(1);
-      setPage(1);
+
+      alert("✅ Post deleted successfully!");
+      setPage(1);         
+      fetchPosts(1);      
     } catch (err) {
-      alert("❌ Failed to delete post.");
-      console.error(err);
+      console.error("❌ Delete post error:", err);
+      alert("❌ Failed to delete post. Please try again.");
     } finally {
       setDeletingId(null);
     }
@@ -107,7 +125,6 @@ const PostsList = () => {
   return (
     <div className="bg-[#0e0e0e] min-h-screen py-10 px-5 text-white font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Search Input */}
         <div className="mb-8">
           <input
             type="text"
@@ -135,6 +152,14 @@ const PostsList = () => {
                   ref={isLast ? lastPostRef : null}
                   className="bg-gray-900 rounded-xl p-6 border border-gray-700 shadow-lg hover:shadow-red-500/30 transition duration-300 hover:scale-[1.02]"
                 >
+                   {/* Only show image if present */}
+  {post.image && (
+    <img
+      src={`http://localhost:4200${post.image}`}
+      alt="Post"
+      className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
+    />
+  )}
                   <h3 className="text-2xl font-bold mb-2 text-yellow-400">{post.title}</h3>
                   <p className="text-gray-400 mb-3">
                     {post.content ? (
@@ -144,8 +169,9 @@ const PostsList = () => {
                     )}
                   </p>
                   <p className="text-sm text-gray-500 mb-4">
-                    <strong>Author:</strong> {post.author}
+                    <strong>Author:</strong> {post.author?.name || "Unknown"}
                   </p>
+
                   <div className="flex gap-3 flex-wrap">
                     <Link
                       to={`/post/${post._id}`}

@@ -11,15 +11,14 @@ const Home = () => {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    // Load current user from localStorage
     const user = JSON.parse(localStorage.getItem('user'));
     setCurrentUser(user);
   }, []);
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('https://blog-e1e3.onrender.com/api/get');
-      setPosts(response.data.slice(0, 6)); // Show first 6 posts
+      const response = await axios.get('http://localhost:4200/api/posts');
+      setPosts(response.data.slice(0, 6)); // First 6 posts
     } catch (error) {
       console.error('Error fetching posts:', error);
     } finally {
@@ -34,7 +33,8 @@ const Home = () => {
   const filteredPosts = posts.filter(post =>
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     post.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    post.author.toLowerCase().includes(searchQuery.toLowerCase())
+    post.author?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.author?.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleDelete = async (id) => {
@@ -42,17 +42,25 @@ const Home = () => {
     if (!confirmDelete) return;
 
     setDeletingId(id);
+
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`, {
+      if (!token) {
+        alert('🔐 No token found. Please log in again.');
+        return;
+      }
+
+      await axios.delete(`http://localhost:4200/api/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      alert("✅ Post deleted successfully.");
       fetchPosts();
     } catch (error) {
-      console.error("Failed to delete:", error);
-      alert("Failed to delete post.");
+      console.error("❌ Failed to delete post:", error);
+      alert("❌ Failed to delete post.");
     } finally {
       setDeletingId(null);
     }
@@ -113,6 +121,14 @@ const Home = () => {
                 key={post._id}
                 className="bg-black text-white shadow-lg rounded-lg p-6 border border-gray-700 transform transition-all duration-300 hover:scale-105 hover:shadow-[0px_8px_25px_rgba(255,165,0,0.6)] hover:bg-gray-800 hover:text-yellow-400"
               >
+                 {/* Only show image if present */}
+  {post.image && (
+    <img
+      src={`http://localhost:4200${post.image}`}
+      alt="Post"
+      className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
+    />
+  )}
                 <h3 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-pink-400 mb-2">
                   {post.title}
                 </h3>
@@ -123,7 +139,12 @@ const Home = () => {
                 ) : (
                   <p className="text-gray-400 mb-2 italic">No content available.</p>
                 )}
-                <p className="text-sm text-gray-500 mb-4"><strong>Author:</strong> {post.author}</p>
+               <p className="text-sm text-gray-500 mb-4">
+  <strong>Author:</strong>{" "}
+  {post.author?.name && post.author?.email
+    ? `${post.author.name} (${post.author.email})`
+    : post.author?.email || "Unknown"}
+</p>
 
                 <div className="flex flex-wrap gap-3">
                   <Link

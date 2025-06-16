@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const uploadss = require('../middleware/upload.js')
+
 
 
 // Controllers
@@ -25,7 +27,7 @@ const {
 } = require('../controllers/AdminController');
 
 // Middleware
-const { verifyToken } = require('../middleware/VerifyToken.js');
+const verifyToken = require('../middleware/VerifyToken.js');
 const { isAdmin } = require('../middleware/adminMiddleware');
 
 
@@ -37,15 +39,19 @@ router.get('/posts/:id', getPostById);      // ✅ View single post
 
 
 // -------------------- Authenticated User Routes -------------------- //
-router.get('/my-posts', verifyToken, getMyPosts);
-router.post('/posts', verifyToken, createPost);                    // ✅ Create post
-router.put('/posts/:id', verifyToken, updatePost);                 // ✅ Update own post
-router.delete('/posts/:id', verifyToken, deletePost);              // ✅ Delete own post
+router.get('/getPosts', verifyToken, getMyPosts);
+router.post('/create', verifyToken, uploadss.single('image'),createPost);                    // ✅ Create post
+router.put('/update/:id', verifyToken,uploadss.single('image'), updatePost);                 // ✅ Update own post
+router.delete('/delete/:id', verifyToken, deletePost);              // ✅ Delete own post
 
 
 // -------------------- Admin-Only Routes -------------------- //
 // User Management
-router.get('/admin/users', verifyToken, isAdmin, getAllUsers);
+router.get('/admin/users', verifyToken, isAdmin, (req, res, next) => {
+  console.log("✅ GET /admin/users HIT by:", req.user);
+  next();
+}, getAllUsers);
+
 router.delete('/admin/users/:id', verifyToken, isAdmin, deleteUser);
 
 // Post Management

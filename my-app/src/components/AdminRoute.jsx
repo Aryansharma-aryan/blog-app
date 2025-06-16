@@ -1,4 +1,3 @@
-import React from "react";
 import { Navigate } from "react-router-dom";
 
 const AdminRoute = ({ children }) => {
@@ -11,7 +10,7 @@ const AdminRoute = ({ children }) => {
   }
 
   // Redirect if not authorized
-  return <Navigate to="/login" />;
+  return <Navigate to="/" />;
 };
 
 export default AdminRoute;

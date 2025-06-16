@@ -9,12 +9,12 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersRes = await axios.get('https://blog-app-ffk3.onrender.com/api/users', {
+        const usersRes = await axios.get('http://localhost:4200/api/admin/users', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsers(usersRes.data);
 
-        const postsRes = await axios.get('https://blog-app-ffk3.onrender.com/api/admin/posts', {
+        const postsRes = await axios.get('http://localhost:4200/api/admin/posts', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPosts(postsRes.data);
@@ -27,7 +27,7 @@ const AdminDashboard = () => {
 
   const deleteUser = async (id) => {
     if (!window.confirm('Delete user?')) return;
-    await axios.delete(`https://blog-app-ffk3.onrender.com/api/admin/users/${id}`, {
+    await axios.delete(`http://localhost:4200/api/admin/users/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setUsers(users.filter(u => u._id !== id));
@@ -35,43 +35,91 @@ const AdminDashboard = () => {
 
   const deletePost = async (id) => {
     if (!window.confirm('Delete post?')) return;
-    await axios.delete(`https://blog-app-ffk3.onrender.com/api/admin/posts/${id}`, {
+    await axios.delete(`http://localhost:4200/api/admin/posts/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     setPosts(posts.filter(p => p._id !== id));
   };
 
   return (
-    <div className="p-8 bg-black text-white min-h-screen">
-      <h2 className="text-3xl font-bold mb-6">Admin Panel</h2>
+    <div className="min-h-screen bg-gray-900 text-white px-6 py-10">
+      <h1 className="text-4xl font-bold text-center mb-12">Admin Dashboard</h1>
 
-      <div className="mb-12">
-        <h3 className="text-xl font-semibold mb-2">All Users</h3>
+      {/* Users Table */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">👥 Users</h2>
         {users.length === 0 ? (
-          <p>No users found.</p>
+          <p className="text-gray-400">No users found.</p>
         ) : (
-          users.map(user => (
-            <div key={user._id} className="flex justify-between items-center bg-gray-800 p-4 rounded mb-2">
-              <span>{user.name} ({user.email}) - {user.role}</span>
-              <button onClick={() => deleteUser(user._id)} className="bg-red-500 px-4 py-1 rounded hover:bg-red-600">Delete</button>
-            </div>
-          ))
+          <div className="overflow-x-auto">
+            <table className="min-w-full border border-gray-700 text-sm rounded-lg overflow-hidden">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th className="px-4 py-2 text-left">Name</th>
+                  <th className="px-4 py-2 text-left">Email</th>
+                  <th className="px-4 py-2 text-left">Role</th>
+                  <th className="px-4 py-2 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map(user => (
+                  <tr key={user._id} className="border-t border-gray-700 hover:bg-gray-800 transition">
+                    <td className="px-4 py-2">{user.name}</td>
+                    <td className="px-4 py-2">{user.email}</td>
+                    <td className="px-4 py-2 capitalize">{user.role}</td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => deleteUser(user._id)}
+                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
 
-      <div>
-        <h3 className="text-xl font-semibold mb-2">All Posts</h3>
+      {/* Posts Table */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4">📝 Posts</h2>
         {posts.length === 0 ? (
-          <p>No posts found.</p>
+          <p className="text-gray-400">No posts found.</p>
         ) : (
-          posts.map(post => (
-            <div key={post._id} className="flex justify-between items-center bg-gray-800 p-4 rounded mb-2">
-              <span>{post.title} by {post.author?.name || "Unknown"}</span>
-              <button onClick={() => deletePost(post._id)} className="bg-red-500 px-4 py-1 rounded hover:bg-red-600">Delete</button>
-            </div>
-          ))
+          <div className="overflow-x-auto">
+            <table className="min-w-full border border-gray-700 text-sm rounded-lg overflow-hidden">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th className="px-4 py-2 text-left">Title</th>
+                  <th className="px-4 py-2 text-left">Content</th>
+                  <th className="px-4 py-2 text-left">Author</th>
+                  <th className="px-4 py-2 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {posts.map(post => (
+                  <tr key={post._id} className="border-t border-gray-700 hover:bg-gray-800 transition">
+                    <td className="px-4 py-2">{post.title}</td>
+                    <td className="px-4 py-2">{post.content?.slice(0, 50)}...</td>
+                    <td className="px-4 py-2">{post.author?.name || "Unknown"}</td>
+                    <td className="px-4 py-2">
+                      <button
+                        onClick={() => deletePost(post._id)}
+                        className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-xs"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };

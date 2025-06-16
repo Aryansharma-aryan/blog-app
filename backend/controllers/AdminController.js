@@ -39,16 +39,12 @@ const deleteUser = async (req, res) => {
 
 // Get all posts (non-deleted only)
 const getAllPostsByAdmin = async (req, res) => {
-  console.log("🧠 [ADMIN ACCESS] getAllPostsByAdmin called by:", req.user);
-
   try {
-    const posts = await Post.find({ deleted: false });
-    console.log("✅ Posts fetched:", posts.length);
+    const posts = await Post.find().populate('author', 'name email'); // ✅ Add this
 
     res.status(200).json(posts);
-  } catch (error) {
-    console.error("❌ Error fetching posts:", error.message);
-    res.status(500).json({ message: 'Error fetching posts', error: error.message });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch posts' });
   }
 };
 

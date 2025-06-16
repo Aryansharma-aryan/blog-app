@@ -6,12 +6,18 @@ const EditPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({ title: '', content: '' });
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    imageUrl: '', // existing image URL
+    imageFile: null // selected new file
+  });
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Load user from localStorage
+  // Load user
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
     if (!storedUser) {
@@ -22,25 +28,29 @@ const EditPost = () => {
     }
   }, [navigate]);
 
-  // Fetch post and verify ownership
+  // Fetch post details
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`https://blog-e1e3.onrender.com/api/${id}`, {
+        const res = await axios.get(`http://localhost:4200/api/posts/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         const post = res.data;
 
-        // 🛑 Prevent editing others' posts
         if (post.userId !== user?._id) {
           alert("You can't edit someone else's post.");
           navigate('/');
           return;
         }
 
-        setFormData({ title: post.title, content: post.content });
+        setFormData({
+          title: post.title,
+          content: post.content,
+          imageUrl: post.image || '', // existing image URL
+          imageFile: null
+        });
       } catch (err) {
         console.error(err);
         setError('Failed to load post. Please try again.');
@@ -50,10 +60,25 @@ const EditPost = () => {
     if (user) {
       fetchPost();
     }
-  }, [id, navigate, user]);
+  }, [id, user, navigate]);
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        imageFile: file,
+        imageUrl: URL.createObjectURL(file)
+      }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,22 +87,21 @@ const EditPost = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.put(
-        `https://blog-e1e3.onrender.com/api/update/${id}`,
-        {
-          title: formData.title.trim(),
-          content: formData.content.trim(),
-          author: user.name,
-          userId: user._id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const data = new FormData();
+      data.append('title', formData.title.trim());
+      data.append('content', formData.content.trim());
+      if (formData.imageFile) {
+        data.append('image', formData.imageFile); // send new image only if selected
+      }
 
-      alert('Post updated successfully!');
+      await axios.put(`http://localhost:4200/api/update/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      alert('✅ Post updated successfully!');
       navigate(`/post/${id}`);
     } catch (err) {
       console.error(err);
@@ -119,7 +143,23 @@ const EditPost = () => {
             />
           </div>
 
-          {/* Display Author (not editable) */}
+          <div className="space-y-2">
+            <label className="text-lg font-medium text-gray-200">Image</label>
+            {formData.imageUrl && (
+              <img
+                src={formData.imageUrl}
+                alt="Post preview"
+                className="w-full h-64 object-cover rounded mb-2"
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full text-gray-200"
+            />
+          </div>
+
           <div className="text-sm text-gray-400">Author: {user?.name}</div>
 
           <div className="mt-4">

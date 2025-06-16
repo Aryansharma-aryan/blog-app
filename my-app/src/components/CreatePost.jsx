@@ -5,23 +5,26 @@ import { useNavigate } from 'react-router-dom';
 const CreatePost = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ title: '', content: '' });
-  const [user, setUser] = useState(null);
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Load user from localStorage
+  // Redirect if not logged in
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (!storedUser) {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (!token || !user) {
       alert('You must be logged in to create a post');
       navigate('/login');
-    } else {
-      setUser(storedUser);
     }
   }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -40,25 +43,22 @@ const CreatePost = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
-        'https://blog-e1e3.onrender.com/api/create',
-        {
-          title: trimmedTitle,
-          content: trimmedContent,
-          author: user.name,
-          userId: user._id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const data = new FormData();
+      data.append('title', trimmedTitle);
+      data.append('content', trimmedContent);
+      if (image) data.append('image', image);
 
-      alert('Post created successfully!');
+      const response = await axios.post('http://localhost:4200/api/create', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      alert('✅ Post created successfully!',response);
       navigate('/');
     } catch (err) {
-      console.error(err);
+      console.error('❌ Error:', err);
       setError('Failed to create the post. Please try again.');
     } finally {
       setLoading(false);
@@ -72,8 +72,7 @@ const CreatePost = () => {
 
         {error && <p className="text-red-400 text-center mb-4">{error}</p>}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Title */}
+        <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
           <div>
             <label className="block text-lg font-semibold text-gray-300 mb-2">Title</label>
             <input
@@ -86,7 +85,6 @@ const CreatePost = () => {
             />
           </div>
 
-          {/* Content */}
           <div>
             <label className="block text-lg font-semibold text-gray-300 mb-2">Content</label>
             <textarea
@@ -99,7 +97,16 @@ const CreatePost = () => {
             />
           </div>
 
-          {/* Submit Button */}
+          <div>
+            <label className="block text-lg font-semibold text-gray-300 mb-2">Upload Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full text-white"
+            />
+          </div>
+
           <div className="mt-6">
             <button
               type="submit"

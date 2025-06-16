@@ -3,13 +3,15 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./db/db');
 const postRoutes = require('./routes/postRoutes');
+const path = require('path');
+
 
 // Load environment variables
 dotenv.config();
 connectDB();
 
 const app = express();
-const PORT = process.env.PORT || 4100;
+const PORT = process.env.PORT || 4200;
 
 // Middleware
 app.use(express.json());
@@ -19,7 +21,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://localhost:5175',
-  'https://blog-verse-lovat.vercel.app',
+  'https://blog-verse-lovat.vercel.app/',
   
 ];
 
@@ -34,6 +36,9 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 👈 Make sure all methods are accepted
 }));
+// Serve /uploads as static folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 
 

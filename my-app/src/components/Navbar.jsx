@@ -54,7 +54,7 @@ export default function Navbar() {
               to="/posts"
               className={`font-medium ${isActive("/posts") ? "text-yellow-400" : "text-white hover:text-yellow-400"}`}
             >
-              All Posts
+              My Posts
             </Link>
 
             {isAdmin && (
@@ -125,7 +125,7 @@ export default function Navbar() {
             onClick={() => setIsOpen(false)}
             className="block font-medium text-white hover:text-yellow-400"
           >
-            All Posts
+            My Posts
           </Link>
 
           {isAdmin && (
