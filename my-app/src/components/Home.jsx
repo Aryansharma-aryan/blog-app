@@ -17,7 +17,7 @@ const Home = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('http://localhost:4200/api/posts');
+      const response = await axios.get('https://blog-e1e3.onrender.com/api/posts');
       setPosts(response.data.slice(0, 6)); // First 6 posts
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -50,7 +50,7 @@ const Home = () => {
         return;
       }
 
-      await axios.delete(`http://localhost:4200/api/delete/${id}`, {
+      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -124,7 +124,7 @@ const Home = () => {
                  {/* Only show image if present */}
   {post.image && (
     <img
-      src={`http://localhost:4200${post.image}`}
+      src={`https://blog-e1e3.onrender.com${post.image}`}
       alt="Post"
       className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
     />
