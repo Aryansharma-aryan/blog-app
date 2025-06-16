@@ -22,7 +22,7 @@ const PostDetail = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await axios.get(`http://localhost:4200/api/posts/${id}`);
+        const res = await axios.get(`https://blog-e1e3.onrender.com/api/posts/${id}`);
         setPost(res.data);
       } catch (err) {
         setError('⚠️ Error fetching post. Please try again later.');
@@ -46,7 +46,7 @@ const PostDetail = () => {
       return;
     }
 
-    await axios.delete(`http://localhost:4200/api/delete/${post._id}`, {
+    await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${post._id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -82,7 +82,7 @@ const PostDetail = () => {
            {/* Only show image if present */}
   {post.image && (
     <img
-      src={`http://localhost:4200${post.image}`}
+      src={`https://blog-e1e3.onrender.com${post.image}`}
       alt="Post"
       className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
     />
