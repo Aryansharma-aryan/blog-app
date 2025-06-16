@@ -33,7 +33,7 @@ const PostsList = () => {
       return;
     }
 
-    const res = await axios.get(`http://localhost:4200/api/getPosts`, {
+    const res = await axios.get(`https://blog-e1e3.onrender.com/api/getPosts`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -96,7 +96,7 @@ const PostsList = () => {
         return;
       }
 
-      await axios.delete(`http://localhost:4200/api/delete/${id}`, {
+      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
