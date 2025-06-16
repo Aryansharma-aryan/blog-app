@@ -155,7 +155,7 @@ const PostsList = () => {
                    {/* Only show image if present */}
   {post.image && (
     <img
-      src={`http://localhost:4200${post.image}`}
+      src={`https://blog-e1e3.onrender.com${post.image}`}
       alt="Post"
       className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
     />
