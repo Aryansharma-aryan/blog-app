@@ -29,7 +29,7 @@ const Login = () => {
 
       try {
         const res = await axios.post(
-          "https://blog-e1e3.onrender.com/api/login",
+          "https://my-blogs-g3ms.onrender.com/api/login",
           {
             email: formData.email.trim(),
             password: formData.password
