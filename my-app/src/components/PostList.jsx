@@ -34,7 +34,7 @@ const PostsList = () => {
         return;
       }
 
-      const res = await axios.get(`https://blog-e1e3.onrender.com/api/getPosts`, {
+      const res = await axios.get(`https://my-blogs-g3ms.onrender.com/api/getPosts`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -109,7 +109,7 @@ const PostsList = () => {
         return;
       }
 
-      await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`, {
+      await axios.delete(`https://my-blogs-g3ms.onrender.com/api/delete/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -168,7 +168,7 @@ const PostsList = () => {
                   
                   {post.image && (
                     <img
-                      src={`https://blog-e1e3.onrender.com${post.image}`}
+                      src={`https://my-blogs-g3ms.onrender.com${post.image}`}
                       alt="Post"
                       className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
                     />
