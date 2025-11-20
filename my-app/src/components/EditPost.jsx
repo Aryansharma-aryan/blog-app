@@ -38,7 +38,7 @@ const EditPost = () => {
         const token = localStorage.getItem('token');
 
         const res = await axios.get(
-          `https://blog-e1e3.onrender.com/api/posts/${id}`,
+          `https://my-blogs-g3ms.onrender.com/api/posts/${id}`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -104,7 +104,7 @@ const EditPost = () => {
       }
 
       await axios.put(
-        `https://blog-e1e3.onrender.com/api/update/${id}`,
+        `https://my-blogs-g3ms.onrender.com/api/update/${id}`,
         data,
         {
           headers: {
