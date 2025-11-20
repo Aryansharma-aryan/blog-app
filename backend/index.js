@@ -7,6 +7,8 @@ const path = require('path');
 
 // Load environment variables
 dotenv.config();
+
+// Connect to MongoDB
 connectDB();
 
 const app = express();
@@ -17,25 +19,28 @@ app.use(express.json());
 
 // Allowed Frontends
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-  'http://localhost:5175',
-  'https://blog-verse-lovat.vercel.app',
-  'https://my-blogs-g3ms.onrender.com'  // ✅ Your Render frontend URL
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "https://blog-verse-lovat.vercel.app",   // Vercel frontend
+  "https://my-blogs-g3ms.onrender.com",    // Render backend
+  "https://blog-e1e3.onrender.com"         // Actual API base URL on Render
 ];
 
-// CORS
+// CORS Setup
 app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('CORS not allowed for origin: ' + origin));
+        console.log("❌ BLOCKED ORIGIN:", origin);
+        callback(new Error("CORS blocked for origin: " + origin));
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
