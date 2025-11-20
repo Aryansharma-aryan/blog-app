@@ -35,7 +35,7 @@ const Signup = () => {
 
       try {
         const response = await axios.post(
-          "https://blog-e1e3.onrender.com/api/signup",
+          "https://my-blogs-g3ms.onrender.com/api/signup",
           {
             name: formData.name.trim(),
             email: formData.email.trim(),
