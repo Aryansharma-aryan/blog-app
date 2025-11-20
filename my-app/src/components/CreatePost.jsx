@@ -63,7 +63,7 @@ const CreatePost = () => {
         if (image) postData.append("image", image);
 
         await axios.post(
-          "https://blog-e1e3.onrender.com/api/create",
+          "https://my-blogs-g3ms.onrender.com/api/create",
           postData,
           {
             headers: {
