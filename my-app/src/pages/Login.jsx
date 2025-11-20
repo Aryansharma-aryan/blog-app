@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -6,73 +6,96 @@ const Login = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const [loading, setLoading] = useState(false); // for spinner
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // --- Optimized Change Handler ---
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value.trimStart()
+    }));
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  // --- Optimized Submit ---
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (loading) return;
 
-    try {
-      const res = await axios.post("https://blog-e1e3.onrender.com/api/login", formData);
+      setLoading(true);
+      setError("");
 
-      // Save data
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("userId", res.data.user.id);
+      try {
+        const res = await axios.post(
+          "https://blog-e1e3.onrender.com/api/login",
+          {
+            email: formData.email.trim(),
+            password: formData.password
+          },
+          { timeout: 10000 }
+        );
 
-      // Redirect quickly based on role
-      if (res.data.user.role === "admin") {
-        navigate("/admin", { replace: true });
-      } else {
-        navigate("/", { replace: true });
+        const { token, user } = res.data;
+
+        // --- Fast localStorage writes ---
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("userId", user?.id);
+
+        // --- Instant redirect ---
+        navigate(user.role === "admin" ? "/admin" : "/", { replace: true });
+
+      } catch (err) {
+        setError(err.response?.data?.message || "Login failed. Try again.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [formData, loading, navigate]
+  );
+
+  const goToSignup = useCallback(() => navigate("/signup"), [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4"
+        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md space-y-4 transition-all duration-300"
       >
-        <h2 className="text-2xl font-bold text-center text-green-600">Login</h2>
+        <h2 className="text-2xl font-semibold text-center text-green-700">
+          Login
+        </h2>
 
-        <input
+        <OptimizedInput
           type="email"
           name="email"
+          value={formData.email}
           placeholder="Email"
           onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-          disabled={loading}
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
           disabled={loading}
         />
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        <OptimizedInput
+          type="password"
+          name="password"
+          value={formData.password}
+          placeholder="Password"
+          onChange={handleChange}
+          disabled={loading}
+        />
+
+        {error && (
+          <p className="text-red-500 text-center text-sm font-medium">{error}</p>
+        )}
 
         <button
           type="submit"
-          className={`w-full py-2 rounded text-white ${
-            loading ? "bg-green-400" : "bg-green-600 hover:bg-green-700"
-          } flex justify-center items-center`}
           disabled={loading}
+          className={`w-full py-2 rounded text-white font-medium flex justify-center items-center transition-all ${
+            loading ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+          }`}
         >
           {loading ? (
             <>
@@ -104,10 +127,10 @@ const Login = () => {
         </button>
 
         <p className="text-center text-sm">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <span
-            className="text-green-600 cursor-pointer font-medium"
-            onClick={() => navigate("/signup")}
+            className="text-green-600 cursor-pointer font-medium hover:underline"
+            onClick={goToSignup}
           >
             Signup
           </span>
@@ -116,5 +139,21 @@ const Login = () => {
     </div>
   );
 };
+
+// --- Memoized Input Component (zero unnecessary re-renders) ---
+const OptimizedInput = React.memo(
+  ({ type, name, value, placeholder, onChange, disabled }) => (
+    <input
+      type={type}
+      name={name}
+      value={value}
+      placeholder={placeholder}
+      onChange={onChange}
+      disabled={disabled}
+      required
+      className="w-full p-2 border rounded focus:ring-2 focus:ring-green-400 outline-none transition-all"
+    />
+  )
+);
 
 export default Login;

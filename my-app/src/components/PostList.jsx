@@ -6,6 +6,7 @@ const POSTS_PER_PAGE = 6;
 
 const PostsList = () => {
   const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -22,56 +23,67 @@ const PostsList = () => {
     setCurrentUser(userData);
   }, []);
 
-  const fetchPosts = async (pageNum = 1) => {
-  try {
-    if (pageNum === 1) setLoading(true);
-    else setLoadingMore(true);
+  // Fetch posts once
+  const fetchAllPosts = async () => {
+    try {
+      setLoading(true);
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setError("🔐 No token found. Please log in.");
-      return;
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError("No token found. Please log in.");
+        return;
+      }
+
+      const res = await axios.get(`https://blog-e1e3.onrender.com/api/getPosts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setAllPosts(res.data);
+      setPosts(res.data.slice(0, POSTS_PER_PAGE));
+      setHasMore(res.data.length > POSTS_PER_PAGE);
+      setError(null);
+
+    } catch (err) {
+      console.error('Error fetching posts:', err);
+      setError('Failed to load posts. Try again later.');
+    } finally {
+      setLoading(false);
     }
-
-    const res = await axios.get(`https://blog-e1e3.onrender.com/api/getPosts`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const allPosts = res.data;
-    const paginated = allPosts.slice(0, pageNum * POSTS_PER_PAGE);
-    setPosts(paginated);
-    setHasMore(paginated.length < allPosts.length);
-    setError(null);
-  } catch (err) {
-    console.error('Error fetching posts:', err);
-    setError('⚠️ Failed to load posts. Try again later.');
-  } finally {
-    setLoading(false);
-    setLoadingMore(false);
-  }
-};
-
+  };
 
   useEffect(() => {
-    fetchPosts(page);
-  }, [page]);
+    fetchAllPosts();
+  }, []);
 
+  // Infinite scroll loader
   const lastPostRef = useCallback(
     (node) => {
       if (loadingMore || loading) return;
+
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
-          setPage((prev) => prev + 1);
+          loadMorePosts();
         }
       });
+
       if (node) observer.current.observe(node);
     },
-    [loadingMore, hasMore, loading]
+    [loading, loadingMore, hasMore]
   );
 
+  const loadMorePosts = () => {
+    setLoadingMore(true);
+    setTimeout(() => {
+      const nextPosts = allPosts.slice(0, (page + 1) * POSTS_PER_PAGE);
+      setPosts(nextPosts);
+      setPage((prev) => prev + 1);
+      setHasMore(nextPosts.length < allPosts.length);
+      setLoadingMore(false);
+    }, 500);
+  };
+
+  // Filter only user's posts
   const myPosts = posts.filter(
     (post) =>
       currentUser &&
@@ -83,6 +95,7 @@ const PostsList = () => {
       )
   );
 
+  // Delete post
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this post?");
     if (!confirmDelete) return;
@@ -92,22 +105,20 @@ const PostsList = () => {
 
       const token = localStorage.getItem('token');
       if (!token) {
-        alert("🔐 No token found. Please log in again.");
+        alert("No token found. Please log in again.");
         return;
       }
 
       await axios.delete(`https://blog-e1e3.onrender.com/api/delete/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      alert("✅ Post deleted successfully!");
-      setPage(1);         
-      fetchPosts(1);      
+      alert("Post deleted successfully!");
+      fetchAllPosts();
+
     } catch (err) {
-      console.error("❌ Delete post error:", err);
-      alert("❌ Failed to delete post. Please try again.");
+      console.error("Delete post error:", err);
+      alert("Failed to delete post. Please try again.");
     } finally {
       setDeletingId(null);
     }
@@ -125,6 +136,8 @@ const PostsList = () => {
   return (
     <div className="bg-[#0e0e0e] min-h-screen py-10 px-5 text-white font-sans">
       <div className="max-w-7xl mx-auto">
+
+        {/* Search Bar */}
         <div className="mb-8">
           <input
             type="text"
@@ -152,29 +165,24 @@ const PostsList = () => {
                   ref={isLast ? lastPostRef : null}
                   className="bg-gray-900 rounded-xl p-6 border border-gray-700 shadow-lg hover:shadow-red-500/30 transition duration-300 hover:scale-[1.02]"
                 >
-                   {/* Only show image if present */}
-  {post.image && (
-    <img
-      src={`https://blog-e1e3.onrender.com${post.image}`}
-      alt="Post"
-      className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
-    />
-  )}
-                  <h3 className="text-2xl font-bold mb-2 text-yellow-400">{post.title}</h3>
-                  <p className="text-gray-400 mb-3">
-                    {post.content ? (
-                      post.content.length > 120 ? post.content.slice(0, 120) + "..." : post.content
-                    ) : (
-                      <i>No content provided.</i>
-                    )}
-                  </p>
- <p className="text-sm text-gray-500 mb-4">
-  <strong>Author:</strong>{" "}
-  {post.author?.name && post.author?.email
-    ? `${post.author.name} (${post.author.email})`
-    : post.author?.email || "Unknown"}
-</p>
+                  
+                  {post.image && (
+                    <img
+                      src={`https://blog-e1e3.onrender.com${post.image}`}
+                      alt="Post"
+                      className="w-full h-48 object-cover rounded-lg mb-4 border border-gray-700 shadow-md"
+                    />
+                  )}
 
+                  <h3 className="text-2xl font-bold mb-2 text-yellow-400">{post.title}</h3>
+
+                  <p className="text-gray-400 mb-3">
+                    {post.content.length > 120 ? post.content.slice(0, 120) + "..." : post.content}
+                  </p>
+
+                  <p className="text-sm text-gray-500 mb-4">
+                    <strong>Author:</strong> {post.author?.name} ({post.author?.email})
+                  </p>
 
                   <div className="flex gap-3 flex-wrap">
                     <Link
@@ -183,12 +191,14 @@ const PostsList = () => {
                     >
                       View
                     </Link>
+
                     <Link
                       to={`/edit/${post._id}`}
                       className="px-4 py-1 bg-yellow-500 rounded-lg text-white text-sm hover:bg-yellow-600 transition"
                     >
                       Edit
                     </Link>
+
                     <button
                       disabled={deletingId === post._id}
                       onClick={() => handleDelete(post._id)}

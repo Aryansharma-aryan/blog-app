@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -14,71 +14,99 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // --- Optimized Change Handler ---
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value.trimStart() // prevents whitespace spam
+    }));
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  // --- Optimized Submit Handler ---
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
 
-    try {
-      await axios.post("https://blog-e1e3.onrender.com/api/signup", formData);
+      if (loading) return; // prevents double-clicks
 
-      alert("✅ Signup successful! You can now login.");
-      navigate("/login", { replace: true });
-    } catch (err) {
-      setError(err.response?.data?.message || "Signup failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await axios.post(
+          "https://blog-e1e3.onrender.com/api/signup",
+          {
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            password: formData.password
+          },
+          { timeout: 10000 } // 10s timeout for faster response failure
+        );
+
+        if (response.status === 201 || response.status === 200) {
+          alert("✅ Signup successful! You can now login.");
+          navigate("/login", { replace: true });
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || "Signup failed. Try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [formData, loading, navigate]
+  );
+
+  const goToLogin = useCallback(() => navigate("/login"), [navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md space-y-4"
+        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md space-y-4 transition-all duration-300"
       >
-        <h2 className="text-2xl font-bold text-center text-blue-600">Signup</h2>
+        <h2 className="text-2xl font-semibold text-center text-blue-700">
+          Create Your Account
+        </h2>
 
-        <input
+        <OptimizedInput
           type="text"
           name="name"
-          placeholder="Name"
+          placeholder="Full Name"
+          value={formData.name}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
           disabled={loading}
         />
 
-        <input
+        <OptimizedInput
           type="email"
           name="email"
-          placeholder="Email"
+          placeholder="Email Address"
+          value={formData.email}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
           disabled={loading}
         />
 
-        <input
+        <OptimizedInput
           type="password"
           name="password"
           placeholder="Password"
+          value={formData.password}
           onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
           disabled={loading}
         />
 
-        {error && <p className="text-red-500 text-center">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-center text-sm font-medium">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
-          className={`w-full py-2 rounded text-white ${
-            loading ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
-          } flex justify-center items-center`}
+          className={`w-full py-2 rounded text-white font-medium flex justify-center items-center transition-all ${
+            loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+          }`}
           disabled={loading}
         >
           {loading ? (
@@ -113,8 +141,8 @@ const Signup = () => {
         <p className="text-center text-sm">
           Already have an account?{" "}
           <span
-            className="text-blue-600 cursor-pointer font-medium"
-            onClick={() => navigate("/login")}
+            className="text-blue-600 cursor-pointer font-medium hover:underline"
+            onClick={goToLogin}
           >
             Login
           </span>
@@ -123,5 +151,21 @@ const Signup = () => {
     </div>
   );
 };
+
+// --- Optimized Input Component (No re-render unless props change) ---
+const OptimizedInput = React.memo(
+  ({ type, name, value, onChange, placeholder, disabled }) => (
+    <input
+      type={type}
+      name={name}
+      value={value}
+      placeholder={placeholder}
+      onChange={onChange}
+      disabled={disabled}
+      className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+      required
+    />
+  )
+);
 
 export default Signup;

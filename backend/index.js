@@ -5,7 +5,6 @@ const connectDB = require('./db/db');
 const postRoutes = require('./routes/postRoutes');
 const path = require('path');
 
-
 // Load environment variables
 dotenv.config();
 connectDB();
@@ -16,36 +15,37 @@ const PORT = process.env.PORT || 4200;
 // Middleware
 app.use(express.json());
 
-// Enable CORS with allowed origin from .env
+// Allowed Frontends
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
   'http://localhost:5175',
- 'https://blog-verse-lovat.vercel.app',
-  
+  'https://blog-verse-lovat.vercel.app',
+  'https://my-blogs-g3ms.onrender.com'  // ✅ Your Render frontend URL
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS not allowed for this origin: ' + origin));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // 👈 Make sure all methods are accepted
-}));
-// Serve /uploads as static folder
+// CORS
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS not allowed for origin: ' + origin));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  })
+);
+
+// Static uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-
-
 
 // Routes
 app.use('/api', postRoutes);
 
-// Root route
+// Root
 app.get('/', (req, res) => {
   res.send('Blogging Platform API is running...');
 });
